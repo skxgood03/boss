@@ -24,6 +24,7 @@ def newcsv():
     fieldnames['skill'] = ''  # 岗位技能
     fieldnames['publis_name'] = ''  # 招聘人
     fieldnames['welfare'] = ''  # 福利情况
+    # fieldnames['publish_time'] = ''  # 更新时间
     return fieldnames
 
 class Boss(object):
@@ -83,17 +84,18 @@ class Boss(object):
 
             content = driver.page_source
             html = etree.HTML(content)
-            for output in self.parse_html(html, jobname, filename, df):
+
+            for output in self.parse_html(html, jobname, filename, df,driver):
                 yield output  # 产生输出
             # self.parse_html(html, jobname, filename, df)
             time.sleep(3)  # 等待页面加载
             i += 1
-            if i > 5:
+            if i > 10:
                 flag = False
 
         driver.quit()
 
-    def parse_html(self, html, type_name, filename, df):
+    def parse_html(self, html, type_name, filename, df,driver):
         li_list = html.xpath('//div[@class="search-job-result"]//ul[@class="job-list-box"]/li')  # 获取职位列表
         for li in li_list:
             job_name = li.xpath('.//span[@class="job-name"]/text()')[0]  # 工作名称
@@ -123,6 +125,20 @@ class Boss(object):
                 welfare = welfare[0]
             else:
                 welfare = ' '
+
+            # job_detail_url = li.xpath('.//a[@class="job-card-left"]/@href')[0]  # 详情页URL
+            # driver.get('https://www.zhipin.com' + job_detail_url)
+            # time.sleep(random.randint(2, 5))  # 等待页面加载
+            # content = driver.page_source
+            # job_detail_html = etree.HTML(content)
+            #
+            # try:
+            #     publish_time = job_detail_html.xpath('//*[@id="main"]/div[3]/div/div[2]/p//text()')[0]  # 发布日期
+            #     publish_time = publish_time.split("：")[1]
+            # except Exception as e:
+            #     print(f"*********************职位：{job_name}，公司名称：{company_name}报错：{e}")
+            #     publish_time = "2024-11-17"
+
             s = {'type': type_name, 'job_title': job_name, 'job_area': location, 'salary': salary,
                  'condition': experience + education,
                  'company_title': company_name, 'company_info': companyinfo, 'skill': words, 'publis_name': publis_name,

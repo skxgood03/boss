@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.urls import path
 from back.api import index
+
 urlpatterns = [
     path('', index.index),
     path('index/', index.index),
@@ -15,12 +16,10 @@ urlpatterns = [
     path('jobCountsEveryCity/', index.getJobCountsByEveryCity),
     path('getEducationAndExperienceOfCity/', index.getEducationAndExperienceOfCity),
     path('onlineSpider/', index.onlineSpider),
-    path('data_init/', index.data_init),
+    path('data_init/', index.data_init),  # 数据预处理
     path('data_init_page/', index.data_init_page),
     path('data_to_sql/', index.data_to_sql),
     path('predict_page/', index.predict_page),
     path('predict/', index.predict),
-
-
 
 ]

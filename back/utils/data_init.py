@@ -17,6 +17,8 @@ education = ["中专", '大专', '本科', '硕士', '博士', "学历不限"]
 
 current_directory = os.path.dirname(os.path.abspath(__file__))
 os.chdir(current_directory)
+
+
 def fullwidth_to_halfwidth(s):  # 全角转半角
     return ''.join([unicodedata.normalize('NFKC', char) for char in s])
 
@@ -46,6 +48,7 @@ def newcsv():
     fieldnames['skill'] = ''  # 岗位技能
     fieldnames['publis_name'] = ''  # 招聘人
     fieldnames['welfare'] = ''  # 福利情况
+    fieldnames['welfare'] = ''  # 福利情况
     return fieldnames
 
 
@@ -70,6 +73,15 @@ def getfiles():
             if '天' in x['salary'][i]:
                 sala_bot = int(int(money[0]) * 365 / 12)
                 sala_top = int(int(money[1]) * 365 / 12)
+            elif '时' in x['salary'][i]:
+                # 假设工作时间为每天8小时
+                hours_per_day = 8
+                days_per_month = 365 / 12
+                sala_bot = int(int(money[0]) * hours_per_day * days_per_month)
+                sala_top = int(int(money[1]) * hours_per_day * days_per_month)
+            elif '月' in x['salary'][i]:
+                sala_bot = int(money[0])
+                sala_top = int(money[1])
             else:
                 sala_bot = int(money[0]) * 1000
                 sala_top = int(money[1]) * 1000
@@ -259,6 +271,7 @@ def getwordcloud():
         ).generate(space_word_list)
         image = word.to_image()
         word.to_file('pic/' + job_name + '.png')  # 保存图片
+
 
 def run():
     getfiles()

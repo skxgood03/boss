@@ -4,7 +4,7 @@ from back.utils.Tools import find_csv_files
 import pandas as pd
 # 数据库连接信息（根据你的数据库信息进行替换）
 username = 'root'
-password = '123456'
+password = 'root'
 host = '127.0.0.1'
 database = 'boss_drf'
 port = '3306'

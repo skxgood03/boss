@@ -186,13 +186,28 @@ def getAvgSalaryByCatetory(category):
     result = {}
     if category=="岗位":
         allPostTypes = getSingleFiledAndDistinct("type")
+        # allPostTypes = ['UI设计师']
         for postType in allPostTypes:
-            salaries = Jobinfo.objects.filter(type=postType).values("salary_top","salary_bot")
-            sa_num = 0.0
+            salaries = Jobinfo.objects.filter(type=postType).values("salary_top", "salary_bot")
+            total_salary = 0.0
+            valid_entries = 0
+
             for salary in salaries:
-                sa_num +=float(salary["salary_top"])+float(salary["salary_bot"])
-            sa_num /= 2.0*len(salaries)
-            result[postType] = round(sa_num,1)
+                try:
+                    salary_top = float(salary["salary_top"])
+                    salary_bot = float(salary["salary_bot"])
+                    total_salary += (salary_top + salary_bot) / 2.0
+                    valid_entries += 1
+                except (ValueError, TypeError):
+                    # 处理异常情况，例如工资不是有效数字的情况
+                    continue
+            print(total_salary, valid_entries)
+            if valid_entries > 0:
+                average_salary = total_salary / valid_entries
+                result[postType] = round(average_salary, 1)
+            else:
+                # 如果没有有效数据，处理你需要的情况
+                result[postType] = None  # 你可以选择一个合适的默认值
 
     elif category == "城市":
         allCities = getSingleFiledAndDistinct("job_area")
