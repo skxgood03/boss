@@ -230,8 +230,10 @@ def getJobCountsByCity():
     return list(Jobinfo.objects.values('job_area').annotate(name=F('job_area'),value=Count('name')).values('name', 'value').order_by())
 
 def getEducationDemandByJobType(JobType):
-    return list(Jobinfo.objects.filter(type=JobType).values("education").annotate(name=F('education'),value=Count('name')).values('name', 'value').order_by())
+    print(JobType)
+    return list(Jobinfo.objects.filter(type__icontains=JobType).values("education").annotate(name=F('education'),value=Count('name')).values('name', 'value').order_by())
 
 def getJobExperienceByJobType(JobType):
-    return list(Jobinfo.objects.filter(type=JobType).values("year").annotate(name=F('year'),value=Count('name')).values('name', 'value').order_by())
+    print(JobType)
+    return list(Jobinfo.objects.filter(type__icontains=JobType).values("year").annotate(name=F('year'),value=Count('name')).values('name', 'value').order_by())
 

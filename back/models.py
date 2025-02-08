@@ -48,7 +48,7 @@ class Jobinfo(models.Model):
     education = models.CharField(verbose_name='受教育水平', max_length=200, null=True, blank=False)
     company_title = models.CharField(verbose_name='公司名称', max_length=200, null=True, blank=False)
     company_info = models.CharField(verbose_name='公司规模', max_length=200, null=True, blank=False)
-    skill = models.CharField(verbose_name='技能要求', max_length=200, null=True, blank=False)
+    skill = models.TextField(verbose_name='技能要求', null=True, blank=False)
     publis_name = models.CharField(verbose_name='发布者', max_length=200, null=True, blank=False)
     welfare = models.CharField(verbose_name='福利待遇', max_length=200, null=True, blank=False)
     type = models.CharField(verbose_name='职业类型', max_length=200, null=True, blank=False)

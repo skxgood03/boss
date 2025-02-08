@@ -1,17 +1,9 @@
 import asyncio  # 异步编程库
-import itertools
 import os
 import random  # 随机数生成库
 from pyppeteer import launch  # 网页自动化测试库
 from lxml import etree  # XML和HTML解析库
 import pandas as pd
-
-PROXIES = [
-
-    'http://218.87.205.34:16428',
-
-    # 更多代理
-]
 
 
 def newcsv():
@@ -28,7 +20,6 @@ def newcsv():
     fieldnames['skill'] = ''  # 岗位技能
     fieldnames['publis_name'] = ''  # 招聘人
     fieldnames['welfare'] = ''  # 福利情况
-    fieldnames['publish_time'] = ''  # 更新时间
     return fieldnames
 
 
@@ -49,36 +40,29 @@ class Boss(object):
     # 新建CSV文件
 
     async def main(self, jobname, filename, df):
-
-        # 随机选择一个代理 IP
-        proxy = random.choice(PROXIES)
-        print(f"Using proxy: {proxy}")
         browser = await launch(
             headless=False,  # 是否无头模式（可见/不可见浏览器）
             userDataDir="./config",  # 用户数据目录（用于保持浏览器会话）
-            args=['--disable-infobars', '--window-size=1366,768', '--no-sandbox', f'--proxy-server={proxy}'],
-            # 启动参数
-            executablePath=r"C:\Users\Administrator\Downloads\Compressed\chrome-win\chrome-win\chrome.exe"
+            args=['--disable-infobars', '--window-size=1366,768', '--no-sandbox']  # 启动参数
         )
 
         page = await browser.newPage()  # 创建新页面
-        # await set_random_user_agent(page)
         width, height = self.screen_size()  # 获取屏幕大小
         await page.setViewport({'width': width, 'height': height})  # 设置页面视口大小
 
         await page.goto(
-            'https://www.zhipin.com/?city=' + '100010000' + '&ka=city-sites-100010000')  # 打开目标网页
+            'https://www.zhipin.com/?city=' + '101110100' + '&ka=city-sites-101110100')  # 打开目标网页
         await page.evaluateOnNewDocument(
             '''() =>{ Object.defineProperties(navigator, { webdriver: { get: () => false } }) }'''
         )  # 修改浏览器环境，防止被检测为自动化测试工具
-        # await asyncio.sleep(5)  # 等待页面加载
-        await asyncio.sleep(random.uniform(2, 5))
+        await asyncio.sleep(5)  # 等待页面加载
+
         i = 1
         flag = True
         while flag:
             print(i, '页', filename)
             await page.goto(
-                'https://www.zhipin.com/web/geek/job?query=' + jobname + '&city=' + '100010000' + '&page=' + str(
+                'https://www.zhipin.com/web/geek/job?query=' + jobname + '&city=' + '101110100' + '&page=' + str(
                     i))  # 打开目标网页
             await page.evaluateOnNewDocument(
                 '''() =>{ Object.defineProperties(navigator, { webdriver: { get: () => false } }) }'''
@@ -86,7 +70,7 @@ class Boss(object):
             await asyncio.sleep(3)  # 等待页面加载
             content = await page.content()  # 获取页面内容
             html = etree.HTML(content)  # 解析页面内容
-            await self.parse_html(html, jobname, filename, df, page)  # 解析内容
+            self.parse_html(html, jobname, filename, df)  # 解析内容
             await asyncio.sleep(3)  # 等待页面加载
             i += 1
             # boss直聘限制翻页为10页，分省分批次抓取
@@ -98,7 +82,7 @@ class Boss(object):
     def input_time_random(self):
         return random.randint(100, 151)  # 生成随机的输入延迟时间
 
-    async def parse_html(self, html, type_name, filename, df, page):
+    def parse_html(self, html, type_name, filename, df):
         li_list = html.xpath('//div[@class="search-job-result"]//ul[@class="job-list-box"]/li')  # 获取职位列表
         for li in li_list:
             job_name = li.xpath('.//span[@class="job-name"]/text()')[0]  # 工作名称
@@ -128,29 +112,13 @@ class Boss(object):
                 welfare = welfare[0]
             else:
                 welfare = ' '
-
-            job_detail_url = li.xpath('.//a[@class="job-card-left"]/@href')[0]  # 详情页URL
-
-            job_detail_page = await page.browser.newPage()  # 创建新页面访问详情页
-            await job_detail_page.goto('https://www.zhipin.com' + job_detail_url)
-            await asyncio.sleep(2)
-            job_detail_content = await job_detail_page.content()
-            job_detail_html = etree.HTML(job_detail_content)
-            try:
-                publish_time = job_detail_html.xpath('//*[@id="main"]/div[3]/div/div[2]/p//text()')[0]  # 发布日期
-                publish_time = publish_time.split("：")[1]
-            except Exception as e:
-                print(f"*********************职位：{job_name}，公司名称：{company_name}报错：{e}")
-                publish_time = "2024-11-17"
-
-            # print(publish_time)
             s = {'type': type_name, 'job_title': job_name, 'job_area': location, 'salary': salary,
                  'condition': experience + education,
                  'company_title': company_name, 'company_info': companyinfo, 'skill': words, 'publis_name': publis_name,
-                 'welfare': welfare, 'publish_time': publish_time}
+                 'welfare': welfare}
             s_df = pd.DataFrame([s])  # 将字典转换为 DataFrame
             df = pd.concat([df, s_df], ignore_index=True)
-            await job_detail_page.close()  # 关闭详情页
+
         print(df)
         if not os.path.exists(filename):
             # 如果文件不存在，写入列名（header=True）

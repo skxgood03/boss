@@ -10,6 +10,7 @@ from lxml import etree
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
+
 def newcsv():
     fieldnames = pd.DataFrame(
         columns=['type', 'job_title', 'job_area', 'salary', 'condition', 'company_title', 'company_info', 'skill',
@@ -26,6 +27,7 @@ def newcsv():
     fieldnames['welfare'] = ''  # 福利情况
     # fieldnames['publish_time'] = ''  # 更新时间
     return fieldnames
+
 
 class Boss(object):
     def __init__(self):
@@ -48,16 +50,16 @@ class Boss(object):
         # 指定用户数据目录的路径
         current_directory = os.path.dirname(os.path.abspath(__file__))
         user_data_dir = "/config"
-        options.add_argument(f"user-data-dir={current_directory+user_data_dir}")
+        options.add_argument(f"user-data-dir={current_directory + user_data_dir}")
         # options.headless = True  # 无头模式
         driver = webdriver.Chrome(options=options)
         # 这里调用 parse_html 作为生成器
-        # driver.get('https://www.zhipin.com/?city=100010000&ka=city-sites-100010000')
+        # driver.get('https://www.zhipin.com/?city=101110100&ka=city-sites-101110100')
         i = 1
         flag = True
         while flag:
             print(i, '页', filename)
-            driver.get(f'https://www.zhipin.com/web/geek/job?query={jobname}&city=100010000&page={i}')
+            driver.get(f'https://www.zhipin.com/web/geek/job?query={jobname}&city=101110100&page={i}')
             # 检查是否出现了验证页面
             time.sleep(7)
             if 'verify-slider' in driver.current_url:
@@ -67,7 +69,7 @@ class Boss(object):
                 while 'verify-slider' in driver.current_url:
                     time.sleep(5)  # 简单地等待1秒再次检查
                 print("验证完成，继续执行程序。")
-                driver.get(f'https://www.zhipin.com/web/geek/job?query={jobname}&city=100010000&page={i}')
+                driver.get(f'https://www.zhipin.com/web/geek/job?query={jobname}&city=101110100&page={i}')
                 time.sleep(7)
             if '403' in driver.current_url:
                 print("检测到IP被封禁，进行手动登录操作")
@@ -79,13 +81,13 @@ class Boss(object):
                     driver_url = driver.current_url
                     print(driver_url)
                 print("验证完成，继续执行程序。")
-                driver.get(f'https://www.zhipin.com/web/geek/job?query={jobname}&city=100010000&page={i}')
+                driver.get(f'https://www.zhipin.com/web/geek/job?query={jobname}&city=101110100&page={i}')
                 time.sleep(7)
 
             content = driver.page_source
             html = etree.HTML(content)
 
-            for output in self.parse_html(html, jobname, filename, df,driver):
+            for output in self.parse_html(html, jobname, filename, df, driver):
                 yield output  # 产生输出
             # self.parse_html(html, jobname, filename, df)
             time.sleep(3)  # 等待页面加载
@@ -95,7 +97,7 @@ class Boss(object):
 
         driver.quit()
 
-    def parse_html(self, html, type_name, filename, df,driver):
+    def parse_html(self, html, type_name, filename, df, driver):
         li_list = html.xpath('//div[@class="search-job-result"]//ul[@class="job-list-box"]/li')  # 获取职位列表
         for li in li_list:
             job_name = li.xpath('.//span[@class="job-name"]/text()')[0]  # 工作名称
@@ -116,8 +118,8 @@ class Boss(object):
                 companyinfo = ''.join(companyinfo)
             # companytype = companyinfo[1] if len(companyinfo)>2 else companyinfo[0] # 公司类型
             location = li.xpath('.//span[@class="job-area"]/text()')[0]  # 工作地点
-            words = li.xpath('.//div[@class="job-card-footer clearfix"]/ul[@class="tag-list"]//text()')
-            words = ' '.join(words)
+            # words = li.xpath('.//div[@class="job-card-footer clearfix"]/ul[@class="tag-list"]//text()')
+            # words = ' '.join(words)
             publis_name = li.xpath('.//div[@class="job-info clearfix"]/div[@class="info-public"]//text()')[0]
             publis_name = ''.join(publis_name)
             welfare = li.xpath('.//div[@class="job-card-footer clearfix"]/div[@class="info-desc"]//text()')
@@ -126,18 +128,20 @@ class Boss(object):
             else:
                 welfare = ' '
 
-            # job_detail_url = li.xpath('.//a[@class="job-card-left"]/@href')[0]  # 详情页URL
-            # driver.get('https://www.zhipin.com' + job_detail_url)
-            # time.sleep(random.randint(2, 5))  # 等待页面加载
-            # content = driver.page_source
-            # job_detail_html = etree.HTML(content)
-            #
-            # try:
-            #     publish_time = job_detail_html.xpath('//*[@id="main"]/div[3]/div/div[2]/p//text()')[0]  # 发布日期
-            #     publish_time = publish_time.split("：")[1]
-            # except Exception as e:
-            #     print(f"*********************职位：{job_name}，公司名称：{company_name}报错：{e}")
-            #     publish_time = "2024-11-17"
+            job_detail_url = li.xpath('.//a[@class="job-card-left"]/@href')[0]  # 详情页URL
+            driver.get('https://www.zhipin.com' + job_detail_url)
+            time.sleep(random.randint(4, 6))  # 等待页面加载
+            content = driver.page_source
+            job_detail_html = etree.HTML(content)
+
+            try:
+                # publish_time = job_detail_html.xpath('//*[@id="main"]/div[3]/div/div[2]/p//text()')[0]  # 发布日期
+                # publish_time = publish_time.split("：")[1]
+                words = job_detail_html.xpath('//*[@id="main"]/div[3]/div/div[2]/div[1]/div[3]//text()')
+                print(words)
+            except Exception as e:
+                print(f"*********************职位：{job_name}，公司名称：{company_name}报错：{e}")
+                words = "无"
 
             s = {'type': type_name, 'job_title': job_name, 'job_area': location, 'salary': salary,
                  'condition': experience + education,
@@ -154,6 +158,7 @@ class Boss(object):
         else:
             # 文件已存在，追加数据时不写入列名（header=False）
             df.to_csv(filename, mode='a', index=False, header=False)
+
 
 def scrape_job_listings(keywords, df):
     boss_instance = Boss()
